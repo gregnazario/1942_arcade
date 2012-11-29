@@ -1,0 +1,82 @@
+######### GENERAL PINS #########
+# Clock
+NET "input_clk" LOC = AH15;// | IOSTANDARD = LVCMOS33;
+
+# Reset
+NET "reset" LOC = E9;
+
+# Sound
+NET "sound" LOC = AM33;
+NET "ac97_bitclk" LOC="AF18" | TNM_NET = ac97_bitclk;
+NET "ac97_sdata_in" LOC="AE18";
+NET "ac97_sdata_out" LOC="AG16";
+NET "ac97_sync" LOC="AF19";
+NET "ac97_reset_b" LOC="AG17";
+TIMESPEC TS_ac97_bitclk = PERIOD "ac97_bitclk" 12.288MHz HIGH 50%;
+
+########## TEMP CONTROLS #######
+#NET "coin"     LOC = U8;
+#NET "p1_start" LOC = V8;
+
+NET "dip[0]" LOC = AC24;
+NET "dip[1]" LOC = AC25;
+//NET "dip[2]" LOC = AE26;
+NET "dip[3]" LOC = AE27;
+NET "dip[4]" LOC = AF26;
+NET "dip[5]" LOC = AF25;
+#NET "dip[6]" LOC = AG27;
+#NET "dip[7]" LOC = U25;
+
+#NET "coin"   LOC = AG27;
+#NET "p1_start" LOC = U25;
+#NET "p2_start" LOC = AE26;
+
+#NET "up"     LOC = U8;
+#NET "down"   LOC = V8;
+#NET "left"   LOC = AK7;
+#NET "right"  LOC = AJ7;
+#NET "fire"   LOC = AJ6;
+#NET "special" LOC = L33;
+
+############ END GENERAL PINS ########
+############ VGA ##############
+NET "VS"       LOC = Y34  | DRIVE = 8; # Yellow
+NET "HS"       LOC = W32  | DRIVE = 8; # Black
+NET "rgb_r[0]" LOC = AN33 | DRIVE = 8;
+NET "rgb_r[1]" LOC = AN34 | DRIVE = 8;
+NET "rgb_r[2]" LOC = AM32 | DRIVE = 8;
+NET "rgb_r[3]" LOC = AJ34 | DRIVE = 8;
+
+NET "rgb_g[0]" LOC = AL33 | DRIVE = 8;
+NET "rgb_g[1]" LOC = AL34 | DRIVE = 8;
+NET "rgb_g[2]" LOC = AK32 | DRIVE = 8;
+NET "rgb_g[3]" LOC = AJ32 | DRIVE = 8;
+
+NET "rgb_b[0]" LOC = AK34 | DRIVE = 8;
+NET "rgb_b[1]" LOC = AH32 | DRIVE = 8;
+NET "rgb_b[2]" LOC = AG32 | DRIVE = 8;
+NET "rgb_b[3]" LOC = AE32 | DRIVE = 8;
+############ END VGA ############
+########## CONTROLS ###########
+# Joystick
+NET "up"    LOC = G32;
+NET "down"  LOC = G33;
+NET "left"  LOC = H34;
+NET "right" LOC = F34;
+# Main buttons
+# Fire
+NET "fire" LOC = M32;
+# Special
+NET "special" LOC = L33;
+# Coin
+NET "coin" LOC = J32;
+# P1_start
+NET "p1_start" LOC = J34;
+# P2_start
+NET "p2_start" LOC = H32;
+######### END CONTROLS ###########
+#Created by Constraints Editor (xc5vlx110t-ff1136-2) - 2012/11/06
+NET "input_clk" TNM_NET = clk_ref_grp;
+TIMESPEC TS_input_clk = PERIOD clk_ref_grp : 10 ns : PRIORITY 1;
+TIMESPEC TS11 = FROM:PADS:TO:FFS : 30 ns;
+TIMESPEC TS12 = FROM:FFS:TO:PADS : 30 ns;
