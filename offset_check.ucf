@@ -1,42 +1,29 @@
 ######### GENERAL PINS #########
 # Clock
-NET "input_clk" LOC = AH15;// | IOSTANDARD = LVCMOS33;
+NET "input_clk" LOC = AH15;
 
-# Reset
+# Reset#
 NET "reset" LOC = E9;
 
 # Sound
-NET "sound" LOC = AM33;
-NET "ac97_bitclk" LOC="AF18" | TNM_NET = ac97_bitclk;
-NET "ac97_sdata_in" LOC="AE18";
+NET "ac97_bitclk"    LOC="AF18" | TNM_NET = ac97_bitclk;
+NET "ac97_sdata_in"  LOC="AE18";
 NET "ac97_sdata_out" LOC="AG16";
-NET "ac97_sync" LOC="AF19";
-NET "ac97_reset_b" LOC="AG17";
+NET "ac97_sync"      LOC="AF19";
+NET "ac97_reset_b"   LOC="AG17";
 TIMESPEC TS_ac97_bitclk = PERIOD "ac97_bitclk" 12.288MHz HIGH 50%;
 
-########## TEMP CONTROLS #######
-#NET "coin"     LOC = U8;
-#NET "p1_start" LOC = V8;
+########## DIP Switches #######
 
 NET "dip[0]" LOC = AC24;
 NET "dip[1]" LOC = AC25;
-//NET "dip[2]" LOC = AE26;
+NET "dip[2]" LOC = AE26;
 NET "dip[3]" LOC = AE27;
 NET "dip[4]" LOC = AF26;
 NET "dip[5]" LOC = AF25;
-#NET "dip[6]" LOC = AG27;
-#NET "dip[7]" LOC = U25;
+NET "dip[6]" LOC = AG27;
+NET "dip[7]" LOC = U25;
 
-#NET "coin"   LOC = AG27;
-#NET "p1_start" LOC = U25;
-#NET "p2_start" LOC = AE26;
-
-#NET "up"     LOC = U8;
-#NET "down"   LOC = V8;
-#NET "left"   LOC = AK7;
-#NET "right"  LOC = AJ7;
-#NET "fire"   LOC = AJ6;
-#NET "special" LOC = L33;
 
 ############ END GENERAL PINS ########
 ############ VGA ##############
@@ -63,16 +50,12 @@ NET "up"    LOC = G32;
 NET "down"  LOC = G33;
 NET "left"  LOC = H34;
 NET "right" LOC = F34;
+
 # Main buttons
-# Fire
-NET "fire" LOC = M32;
-# Special
-NET "special" LOC = L33;
-# Coin
-NET "coin" LOC = J32;
-# P1_start
+NET "fire"     LOC = M32;
+NET "special"  LOC = L33;
+NET "coin"     LOC = J32;
 NET "p1_start" LOC = J34;
-# P2_start
 NET "p2_start" LOC = H32;
 ######### END CONTROLS ###########
 #Created by Constraints Editor (xc5vlx110t-ff1136-2) - 2012/11/06

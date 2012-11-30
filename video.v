@@ -94,6 +94,19 @@ module video_controller(
   wire [2:0] linebuffer_bit;
   reg        render_pipeline;
 
+  wire [7:0] sprite_linebuffer_color;
+  reg  [7:0] sprite_effective_column;
+  reg  [7:0] sprite_effective_scanline;
+  wire sprite_linebuffer_color_transparent;
+  reg  sprite_flop_linebuffers; 
+  reg  sprite_linebuffers_clr;
+  reg  sprite_pipeline_start;
+
+  wire [9:0] orig_bg_linebuffer_color;
+  reg        load_bg_scanline_buffer;
+  wire [2:0] bg_linebuffer_bit;
+  reg  [9:0] out_effective_column;
+
   // fg linebuffer pipeline
   fg_linebuffer_pipeline fg_pipe(
     // inputs
@@ -113,27 +126,21 @@ module video_controller(
     .fg_linebuffer_color_transparent(fg_linebuffer_transparent)
   );
   
-    
-  wire [9:0] orig_bg_linebuffer_color;
-  reg        load_bg_scanline_buffer;
-  wire [2:0] bg_linebuffer_bit;
-  reg  [9:0] out_effective_column;
-  
   // Scrolling logic
   bg_scroller bg_scroll(
     // inputs
-	 .scanline(effective_scanline),
+    .scanline(effective_scanline),
     .column(out_effective_column),
-	 .bg_column(bg_effective_column),
+    .bg_column(bg_effective_column),
     .scroll_read_data(scroll_read_data),
     .video_clk(video_clk), 
     .rst_b(rst_b),
-	 .orig_bg_linebuffer_color(orig_bg_linebuffer_color),
-	 .load_bg_scanline_buffer(load_bg_scanline_buffer),
-	 
-	 //outputs
-	 .bg_linebuffer_bit(bg_linebuffer_bit),
-	 .new_bg_linebuffer_color(bg_linebuffer_color)
+    .orig_bg_linebuffer_color(orig_bg_linebuffer_color),
+    .load_bg_scanline_buffer(load_bg_scanline_buffer),
+    
+    //outputs
+    .bg_linebuffer_bit(bg_linebuffer_bit),
+    .new_bg_linebuffer_color(bg_linebuffer_color)
   );
   
   // bg linebuffer pipeline
@@ -160,13 +167,7 @@ module video_controller(
     .bgvideoram_read_addr(bgvideoram_read_addr)
   );
    
-  wire [7:0] sprite_linebuffer_color;
-  reg  [7:0] sprite_effective_column;
-  reg  [7:0] sprite_effective_scanline;
-  wire sprite_linebuffer_color_transparent;
-  reg  sprite_flop_linebuffers; 
-  reg  sprite_linebuffers_clr;
-  reg  sprite_pipeline_start;
+
   // sprite linebuffer pipeline
   sprite_linebuffer_pipeline sprite_pipe(
     // inputs
@@ -200,7 +201,7 @@ module video_controller(
     .palette_data(palette_read_data[11:0]),
     .video_clk(video_clk),
     .rst_b(rst_b), 
-	 .dip(dip),
+    .dip(dip),
 
     // outputs
     .palette_addr(palette_read_addr),
@@ -214,20 +215,20 @@ module video_controller(
   always @(*) begin
     // defaults
     sprite_effective_scanline = 0;
-    effective_scanline    = 0;
-    effective_column      = 0;
-    pipeline_start        = 0;
-    sprite_pipeline_start = 0;
-    render_pipeline       = 0;
-    sprite_flop_linebuffers = 0;
-    sprite_linebuffers_clr  = 0;
-    sprite_effective_column = 0;
-	 bg_effective_scanline   = 0;
-	 bg_effective_column     = 0;
-	 bg_pipeline_start       = 0;
-	 load_bg_scanline_buffer = 0;
-    out_effective_column    = 0;
-	 
+    effective_scanline        = 0;
+    effective_column          = 0;
+    pipeline_start            = 0;
+    sprite_pipeline_start     = 0;
+    render_pipeline           = 0;
+    sprite_flop_linebuffers   = 0;
+    sprite_linebuffers_clr    = 0;
+    sprite_effective_column   = 0;
+    bg_effective_scanline     = 0;
+    bg_effective_column       = 0;
+    bg_pipeline_start         = 0;
+    load_bg_scanline_buffer   = 0;
+    out_effective_column      = 0;
+   
     // sprite pipeline control
     // operates one scanline ahead for next scanline
     if (scanline >= 127 && scanline <= 350) begin
@@ -242,30 +243,30 @@ module video_controller(
     end
 
     // bg pipeline control (for scrolling)
-	 // operates one scanline ahead at all times
+    // operates one scanline ahead at all times
     if (scanline >= 126 && scanline <= 349) begin
-	   bg_effective_scanline = scanline - 126 + 16;
-		
-		if (column >= 184 && column <= 695) begin
-		  load_bg_scanline_buffer = 1;
-		  bg_effective_column  = column - 184;
-		  
-		  if (((column) % 8) == 0) begin
+      bg_effective_scanline = scanline - 126 + 16;
+    
+      if (column >= 184 && column <= 695) begin
+        load_bg_scanline_buffer = 1;
+        bg_effective_column  = column - 184;
+      
+        if (((column) % 8) == 0) begin
           bg_pipeline_start = 1;
         end
-		end
-	 end
-	 
-	 // bg output control (for scrolling)
-	 // operates one scanline ahead at all times
+      end
+    end
+   
+    // bg output control (for scrolling)
+    // operates one scanline ahead at all times
     if (scanline >= 128 && scanline <= 351) begin
-	   bg_effective_scanline = scanline - 128 + 16;
-		
-		if (column >= 184 && column <= 456) begin
-		  out_effective_column  = column - 184;
-		end
-	 end
-	 
+      bg_effective_scanline = scanline - 128 + 16;
+      
+      if (column >= 184 && column <= 456) begin
+        out_effective_column  = column - 184;
+      end
+    end
+   
 
     // fg/bg pipeline control
     // operates 8 pixels ahead for next 8 pixels
@@ -288,7 +289,6 @@ module video_controller(
       end
     end
   end
-	
 endmodule
 
 
@@ -373,28 +373,32 @@ module fg_linebuffer_pipeline(
     .out(fgvideoram_code_reg_out),  
     .load(fgvideoram_code_reg_load),  
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(6) fgvideoram_color_reg(
     .in(fgvideoram_read_data[5:0]), 
     .out(fgvideoram_color_reg_out), 
     .load(fgvideoram_color_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) gfx1_1_reg(
     .in(gfx1_read_data), 
     .out(gfx1_1_reg_out), 
     .load(gfx1_1_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) gfx1_2_reg(
     .in(gfx1_read_data), 
     .out(gfx1_2_reg_out), 
     .load(gfx1_2_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
   
   wire [5:0] fgvideoram_color_linebuffer_out;
   wire [2:0] gfx1_1_linebuffer_sel;
@@ -411,10 +415,8 @@ module fg_linebuffer_pipeline(
   wire [7:0] gfx1_1_linebuffer_in, gfx1_2_linebuffer_in;
   
   // Reordering linebuffers
-  //always @(*) begin
   assign  gfx1_1_linebuffer_in = {gfx1_2_reg_out[3:0], gfx1_1_reg_out[3:0]};
   assign  gfx1_2_linebuffer_in = {gfx1_2_reg_out[7:4], gfx1_1_reg_out[7:4]};
-  //end
   
   // fg, gfx1 linebuffers
   generic_register #(6) fgvideoram_color_linebuffer(
@@ -422,7 +424,8 @@ module fg_linebuffer_pipeline(
     .out(fgvideoram_color_linebuffer_out), 
     .load(linebuffer_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   linebuffer8 gfx1_1_linebuffer(
     .in(gfx1_1_linebuffer_in), 
@@ -430,7 +433,8 @@ module fg_linebuffer_pipeline(
     .load(linebuffer_load), 
     .out(gfx1_1_linebuffer_out), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   linebuffer8 gfx1_2_linebuffer(
     .in(gfx1_2_linebuffer_in), 
@@ -438,7 +442,8 @@ module fg_linebuffer_pipeline(
     .load(linebuffer_load), 
     .out(gfx1_2_linebuffer_out), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
   
   
   // inputs/outputs to renderer
@@ -461,10 +466,6 @@ module fg_linebuffer_pipeline(
     gfx1_read_addr_computed = 0;
     gfx1_read_addr_offset   = 0;
 
-    // OLD formula
-    // (((fgvideoram_code_reg_out + (fgvideoram_read_data[7] << 1) % 64) >> 7)
-
-    // Current formula: (16 * code) + {data[7], 8'd0}
     gfx1_read_addr_computed = (fgvideoram_code_reg_out + {fgvideoram_read_data[7], 8'b00000000}) << 4; // fgvideoram_read_data is color reg this cycle
     
     gfx1_read_addr_offset   = (fg_tile_row << 1);
@@ -579,35 +580,40 @@ module bg_linebuffer_pipeline(
     .out(bgvideoram_code_reg_out), 
     .load(bgvideoram_code_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) bgvideoram_color_reg(
     .in(bgvideoram_read_data), 
     .out(bgvideoram_color_reg_out), 
     .load(bgvideoram_color_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) gfx2_bitplane_1_reg(
     .in(gfx2_bitplane_1_read_data), 
     .out(gfx2_bitplane_1_reg_out), 
     .load(gfx2_bitplane_1_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) gfx2_bitplane_2_reg(
     .in(gfx2_bitplane_2_read_data), 
     .out(gfx2_bitplane_2_reg_out), 
     .load(gfx2_bitplane_2_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) gfx2_bitplane_3_reg(
     .in(gfx2_bitplane_3_read_data), 
     .out(gfx2_bitplane_3_reg_out), 
     .load(gfx2_bitplane_3_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
   
   wire [7:0] bgvideoram_color_linebuffer_out;
   wire [2:0] gfx2_bitplane_1_linebuffer_sel;
@@ -623,7 +629,8 @@ module bg_linebuffer_pipeline(
     .out(bgvideoram_color_linebuffer_out), 
     .load(linebuffer_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   linebuffer8 bgfx2_bitplane_1_reg(
     .in(gfx2_bitplane_1_reg_out), 
@@ -631,7 +638,8 @@ module bg_linebuffer_pipeline(
     .load(linebuffer_load), 
     .out(gfx2_bitplane_1_linebuffer_out),
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   linebuffer8 bgfx2_bitplane_2_reg(
     .in(gfx2_bitplane_2_reg_out), 
@@ -639,7 +647,8 @@ module bg_linebuffer_pipeline(
     .load(linebuffer_load), 
     .out(gfx2_bitplane_2_linebuffer_out), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   linebuffer8 bgfx2_bitplane_3_reg(
     .in(gfx2_bitplane_3_reg_out), 
@@ -647,11 +656,11 @@ module bg_linebuffer_pipeline(
     .load(linebuffer_load), 
     .out(gfx2_bitplane_3_linebuffer_out), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
  
-  wire flipx;//, flipy;
-  //assign flipy = bgvideoram_color_linebuffer_out[6];//bgvideoram_read_data[6];
-  assign flipx = bgvideoram_color_linebuffer_out[5];//bgvideoram_read_data[5];
+  wire flipx;
+  assign flipx = bgvideoram_color_linebuffer_out[5];
 
   // inputs/outputs to renderer
   reg [2:0] flipped_linebuffer_bit;
@@ -684,11 +693,11 @@ module bg_linebuffer_pipeline(
   always @(*) begin
     gfx2_read_addr_computed = 0;
     gfx2_read_addr_offset   = 0;
-	 
+   
     gfx2_read_addr_computed = (bgvideoram_code_reg_out + {bgvideoram_read_data[7], 8'b00000000}) << 5;
     
     // flipx
-	  if (bgvideoram_read_data[5]) begin
+    if (bgvideoram_read_data[5]) begin
       if (bg_tile_col >= 8) gfx2_read_addr_offset = 0;
       else                  gfx2_read_addr_offset = 16;
     end else begin
@@ -703,7 +712,6 @@ module bg_linebuffer_pipeline(
       gfx2_read_addr_offset   =  gfx2_read_addr_offset   + bg_tile_row;
     end
 
-    //gfx2_read_addr_offset   =  gfx2_read_addr_offset   + bg_tile_row;
     gfx2_read_addr_computed   = (gfx2_read_addr_computed + gfx2_read_addr_offset); // align to byte
     
     // addresses to roms
@@ -833,63 +841,72 @@ module sprite_linebuffer_pipeline(
     .out(sprite_counter_out), 
     .rst_b(rst_b), 
     .clk(video_clk), 
-    .clr(1'b0));
+    .clr(1'b0)
+  );
  
   generic_register #(8) gfx3_1_1_reg(
     .in(gfx3_1_read_data), 
     .out(gfx3_1_1_reg_out), 
     .load(gfx3_1_1_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) gfx3_1_2_reg(
     .in(gfx3_1_read_data), 
     .out(gfx3_1_2_reg_out), 
     .load(gfx3_1_2_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) gfx3_1_3_reg(
     .in(gfx3_1_read_data), 
     .out(gfx3_1_3_reg_out), 
     .load(gfx3_1_3_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) gfx3_1_4_reg(
     .in(gfx3_1_read_data), 
     .out(gfx3_1_4_reg_out), 
     .load(gfx3_1_4_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) gfx3_2_1_reg(
     .in(gfx3_2_read_data), 
     .out(gfx3_2_1_reg_out), 
     .load(gfx3_2_1_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) gfx3_2_2_reg(
     .in(gfx3_2_read_data), 
     .out(gfx3_2_2_reg_out), 
     .load(gfx3_2_2_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) gfx3_2_3_reg(
     .in(gfx3_2_read_data), 
     .out(gfx3_2_3_reg_out), 
     .load(gfx3_2_3_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) gfx3_2_4_reg(
     .in(gfx3_2_read_data), 
     .out(gfx3_2_4_reg_out), 
     .load(gfx3_2_4_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   wire [7:0] spriteram_code_reg_data, spriteram_color_reg_data, spriteram_sy_reg_data, spriteram_sx_reg_data;
   reg spriteram_code_reg_load, spriteram_color_reg_load, spriteram_sy_reg_load, spriteram_sx_reg_load;
@@ -899,28 +916,32 @@ module sprite_linebuffer_pipeline(
     .out(spriteram_code_reg_data), 
     .load(spriteram_code_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) spriteram_color_reg(
     .in(spriteram_read_data), 
     .out(spriteram_color_reg_data), 
     .load(spriteram_color_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) spriteram_sy_reg(
     .in(spriteram_read_data), 
     .out(spriteram_sy_reg_data), 
     .load(spriteram_sy_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   generic_register #(8) spriteram_sx_reg(
     .in(spriteram_read_data), 
     .out(spriteram_sx_reg_data), 
     .load(spriteram_sx_reg_load), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
 
   wire      linebuffers_full;
   reg       linebuffers_load;
@@ -976,13 +997,13 @@ module sprite_linebuffer_pipeline(
     sprite_in_scanline = 0;
     
     // double/quadruple height
-    sprite_i = spriteram_color_reg_data[7:6];//(spriteram_color_reg_data & 8'hc0) >> 6;
+    sprite_i = spriteram_color_reg_data[7:6];
 
     if (sprite_i == 2) sprite_i = 3;
     
     // checking if sprite falls in scanline
     if (spriteram_sy_reg_data >= scanline) begin
-	   sprite_in_scanline = 0;
+     sprite_in_scanline = 0;
     end else if (spriteram_sy_reg_data + 16 >= scanline) begin
       sprite_in_scanline = 1;
       sprite_i_effective = 0;
@@ -1020,23 +1041,23 @@ module sprite_linebuffer_pipeline(
   always @(*) begin
     // defaults
     sprite_pipeline_next_state = `SPRITE_PIPELINE_IDLE;
-    sprite_counter_inc       = 0;
-    spriteram_code_reg_load  = 0;
-    spriteram_color_reg_load = 0;
-    spriteram_sy_reg_load    = 0;
-    spriteram_sx_reg_load    = 0;
-    gfx3_1_1_reg_load        = 0;
-    gfx3_1_2_reg_load        = 0;
-    gfx3_1_3_reg_load        = 0;
-    gfx3_1_4_reg_load        = 0;
-    gfx3_2_1_reg_load        = 0;
-    gfx3_2_2_reg_load        = 0;
-    gfx3_2_3_reg_load        = 0;
-    gfx3_2_4_reg_load        = 0;
-    linebuffers_load         = 0;
-    gfx3_1_read_addr         = 0;
-    gfx3_2_read_addr         = 0;
-    spriteram_addr           = 0;
+    sprite_counter_inc         = 0;
+    spriteram_code_reg_load    = 0;
+    spriteram_color_reg_load   = 0;
+    spriteram_sy_reg_load      = 0;
+    spriteram_sx_reg_load      = 0;
+    gfx3_1_1_reg_load          = 0;
+    gfx3_1_2_reg_load          = 0;
+    gfx3_1_3_reg_load          = 0;
+    gfx3_1_4_reg_load          = 0;
+    gfx3_2_1_reg_load          = 0;
+    gfx3_2_2_reg_load          = 0;
+    gfx3_2_3_reg_load          = 0;
+    gfx3_2_4_reg_load          = 0;
+    linebuffers_load           = 0;
+    gfx3_1_read_addr           = 0;
+    gfx3_2_read_addr           = 0;
+    spriteram_addr             = 0;
     
     case (sprite_pipeline_state)
       `SPRITE_PIPELINE_IDLE: begin
@@ -1202,11 +1223,11 @@ module sprite_linebuffer (
 
       linebuffer_sel = {linebuffer_sel[3:2], ~linebuffer_sel[1:0]};
     end
-	 else if ( (sx_f - 496) < 16 && sel < (sx_f - 496) && sx_f > 496) begin
-	   linebuffer_sel = sel[3:0] - (sx_f - 496);
+    else if ( (sx_f - 496) < 16 && sel < (sx_f - 496) && sx_f > 496) begin
+      linebuffer_sel = sel[3:0] - (sx_f - 496);
       linebuffer_sel = {linebuffer_sel[3:2], ~linebuffer_sel[1:0]};
-		valid_out      = valid_f;
-	 end
+      valid_out      = valid_f;
+    end
   end
 
   assign coloroffset = {b3_f[linebuffer_sel], b4_f[linebuffer_sel],
@@ -1284,7 +1305,8 @@ module sprite_linebuffers (
     .sel(sel), 
     .transparent(splb_1_transparent), 
     .valid_out(splb_1_valid), 
-    .out(splb_1_out));
+    .out(splb_1_out)
+  );
 
   sprite_linebuffer splb_2(
     .bitplane1(bitplane1), 
@@ -1301,7 +1323,8 @@ module sprite_linebuffers (
     .sel(sel), 
     .transparent(splb_2_transparent), 
     .valid_out(splb_2_valid), 
-    .out(splb_2_out));
+    .out(splb_2_out)
+  );
 
   sprite_linebuffer splb_3(
     .bitplane1(bitplane1), 
@@ -1318,7 +1341,8 @@ module sprite_linebuffers (
     .sel(sel), 
     .transparent(splb_3_transparent), 
     .valid_out(splb_3_valid), 
-    .out(splb_3_out));
+    .out(splb_3_out)
+  );
 
   sprite_linebuffer splb_4(
     .bitplane1(bitplane1), 
@@ -1335,7 +1359,8 @@ module sprite_linebuffers (
     .sel(sel), 
     .transparent(splb_4_transparent), 
     .valid_out(splb_4_valid), 
-    .out(splb_4_out));
+    .out(splb_4_out)
+  );
 
   sprite_linebuffer splb_5(
     .bitplane1(bitplane1), 
@@ -1352,7 +1377,8 @@ module sprite_linebuffers (
     .sel(sel), 
     .transparent(splb_5_transparent), 
     .valid_out(splb_5_valid), 
-    .out(splb_5_out));
+    .out(splb_5_out)
+  );
 
   sprite_linebuffer splb_6(
     .bitplane1(bitplane1), 
@@ -1386,7 +1412,8 @@ module sprite_linebuffers (
     .sel(sel), 
     .transparent(splb_7_transparent), 
     .valid_out(splb_7_valid), 
-    .out(splb_7_out));
+    .out(splb_7_out)
+  );
 
   sprite_linebuffer splb_8(
     .bitplane1(bitplane1), 
@@ -1403,7 +1430,8 @@ module sprite_linebuffers (
     .sel(sel), 
     .transparent(splb_8_transparent), 
     .valid_out(splb_8_valid), 
-    .out(splb_8_out));
+    .out(splb_8_out)
+  );
 
  
   reg linebuffer_count_inc;
@@ -1414,7 +1442,8 @@ module sprite_linebuffers (
     .out(linebuffer_count_out), 
     .clr(clr), 
     .rst_b(rst_b),
-    .clk(clk));
+    .clk(clk)
+  );
 
   assign full = (linebuffer_count_out == 4'd8);
 
@@ -1455,7 +1484,6 @@ module sprite_linebuffers (
     else if (splb_7_valid && !splb_7_transparent) out = splb_7_out;
     else if (splb_8_valid && !splb_8_transparent) out = splb_8_out;
     else transparent = 1;
-
   end
 
 endmodule
@@ -1494,7 +1522,7 @@ module renderer_pipeline(
   
   always @(*) begin
     // default - color = bg
-	  //palette_addr_0 = 0;
+    //palette_addr_0 = 0;
     palette_addr_0 = bg_linebuffer_color + 256;
 
     // second priority - fg
@@ -1517,7 +1545,8 @@ module renderer_pipeline(
     .out(palette_addr[10:0]), 
     .load(1'd1), 
     .clk(video_clk), 
-    .rst_b(rst_b));
+    .rst_b(rst_b)
+  );
  
   assign palette_addr[15:11] = 5'd0;
  
@@ -1670,18 +1699,18 @@ endmodule
   // Scrolling logic
 module bg_scroller(
     // inputs
-	 input wire [7:0]  scanline,
+    input wire [7:0]  scanline,
     input wire [8:0]  column,
-	 input wire [8:0]  bg_column,
+    input wire [8:0]  bg_column,
     input wire [15:0] scroll_read_data,
     input wire        video_clk, 
     input wire        rst_b,
-	 input wire [9:0]  orig_bg_linebuffer_color,
-	 input wire        load_bg_scanline_buffer,
-	 
-	 // outputs
-	 output reg  [2:0] bg_linebuffer_bit,
-	 output wire [9:0] new_bg_linebuffer_color
+    input wire [9:0]  orig_bg_linebuffer_color,
+    input wire        load_bg_scanline_buffer,
+    
+    // outputs
+    output reg  [2:0] bg_linebuffer_bit,
+    output wire [9:0] new_bg_linebuffer_color
   );
   
   reg  [9:0] flopped_color [511:0];
@@ -1689,14 +1718,13 @@ module bg_scroller(
   
   assign buffer_index = column + scroll_read_data[3:0];
   
-  
   assign new_bg_linebuffer_color = flopped_color[buffer_index];
   
   // linebuffer bit counter 0...7 repeatedly
   always @(posedge video_clk or negedge rst_b) begin
     if      (~rst_b)                  bg_linebuffer_bit <= 5;
     else if (load_bg_scanline_buffer) bg_linebuffer_bit <= bg_linebuffer_bit - 1;
-	 else                              bg_linebuffer_bit <= 5;
+    else                              bg_linebuffer_bit <= 5;
   end
   
   always @(posedge video_clk) begin

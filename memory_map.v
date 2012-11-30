@@ -17,8 +17,8 @@
  // d800-dbff Background RAM (groups of 32 bytes, 16 code, 16 color/attribute)
  // e000-efff RAM
 
-module memory_map (cpu_clk, /*audio_clk,*/ video_clk, cpu_write, rst_b,
-  /*audio_write,*/ cpu_address, /*audio_address,*/ cpu_data_in, /*audio_data_in,*/ cpu_data_out, /*audio_data_out,*/ fgvideoram_read_data,
+module memory_map (cpu_clk, video_clk, cpu_write, rst_b,
+  cpu_address, cpu_data_in, cpu_data_out, fgvideoram_read_data,
   bgvideoram_read_data, spriteram_read_data, palette_bank_read_data, scroll_read_data, fgvideoram_read_addr,
   bgvideoram_read_addr, spriteram_read_addr, gfx1_read_data, gfx2_bitplane_1_read_data, gfx2_bitplane_2_read_data,
   gfx2_bitplane_3_read_data, gfx3_1_read_data, gfx3_2_read_data, palette_read_data, gfx1_read_addr,
@@ -29,21 +29,18 @@ module memory_map (cpu_clk, /*audio_clk,*/ video_clk, cpu_write, rst_b,
   input p1_start, p2_start, coin, fire, special;
   input [7:0] dip;
 
-  input cpu_clk, /*audio_clk,*/ video_clk, rst_b;
-  input cpu_write;//, audio_write; // 1 to enable;
-  input [15:0] cpu_address;     //to read/write
-//  input [15:0] audio_address;
+  input cpu_clk, video_clk, rst_b;
+  input cpu_write;           // 1 to enable
+  input [15:0] cpu_address;  //to read/write
   input [7:0]  cpu_data_in;
-//  input [7:0]  audio_data_in;
 
   output reg [7:0] cpu_data_out;
-  //output reg [7:0] audio_data_out;
 
-  wire[7:0] cpu_bgvideo_out;
-  wire[7:0] cpu_fgvideo_out;
-  wire[7:0] cpu_spram_out;
+  wire [7:0] cpu_bgvideo_out;
+  wire [7:0] cpu_fgvideo_out;
+  wire [7:0] cpu_spram_out;
 
-  //Video controller
+  // Video controller
 
   output [7:0]  fgvideoram_read_data;
   output [7:0]  bgvideoram_read_data;
@@ -74,15 +71,11 @@ module memory_map (cpu_clk, /*audio_clk,*/ video_clk, cpu_write, rst_b,
 
   output wire [7:0] soundlatch;
 
-//  wire maincpu_write, audiocpu_write;
-
   wire [7:0] data_maincpu_rom;
   wire [7:0] data_maincpu_bank1_rom;
   wire [7:0] data_maincpu_bank2_rom;
   wire [7:0] data_maincpu_bank3_rom;
-//  wire [7:0] data_audiocpu_rom;
   wire [7:0] data_maincpu_ram;
-//  wire [7:0] data_audiocpu_ram;
 
   wire [1:0]  bank_switch;
   wire [7:0]  c804, palette_bank, scroll_high, scroll_low;
@@ -116,12 +109,6 @@ module memory_map (cpu_clk, /*audio_clk,*/ video_clk, cpu_write, rst_b,
     .douta(data_maincpu_bank3_rom) // output [7 : 0]  douta
   );
 
-/*  audiocpu_BRAM audiocpu_rom (
-    .clka(audio_clk),            // input  clka
-    .addra(audio_address[13:0]), // input  [13 : 0] addra
-    .douta(data_audiocpu_rom)    // output [7 : 0]  douta
-  );*/
-
   // ------------------ RAMs -----------------------
 
   maincpu_ram cpu_ram (
@@ -131,14 +118,6 @@ module memory_map (cpu_clk, /*audio_clk,*/ video_clk, cpu_write, rst_b,
     .dina(cpu_data_in),        // input  [7 : 0]  dina
     .douta(data_maincpu_ram)   // output [7 : 0]  douta
   );
-
-/*  audiocpu_ram audiocpu_ram (
-    .clka(audio_clk),            // input  clka
-    .wea(audiocpu_write),        // input  [0 : 0]  wea
-    .addra(audio_address[10:0]), // input  [10 : 0] addra
-    .dina(audio_data_in),        // input  [7 : 0]  dina
-    .douta(data_audiocpu_ram)    // output [7 : 0]  douta
-  );*/
 
   bgvideoram bgram (
     .clka(video_clk),                   // input  clka
@@ -152,6 +131,7 @@ module memory_map (cpu_clk, /*audio_clk,*/ video_clk, cpu_write, rst_b,
     .dinb(cpu_data_in),                 // input  [7 : 0]  dinb
     .doutb(cpu_bgvideo_out)             // output [7 : 0]  doutb
   );
+
   fgvideoram fgram (
     .clka(video_clk),                   // input  clka
     .wea(1'b0),                         // input  [0 : 0]  wea
@@ -164,6 +144,7 @@ module memory_map (cpu_clk, /*audio_clk,*/ video_clk, cpu_write, rst_b,
     .dinb(cpu_data_in),                 // input  [7 : 0]  dinb
     .doutb(cpu_fgvideo_out)             // output [7 : 0]  doutb
   );
+
   spriteram spram (
     .clka(video_clk),                  // input  clka
     .wea(1'b0),                        // input  [0 : 0]  wea
@@ -182,26 +163,31 @@ module memory_map (cpu_clk, /*audio_clk,*/ video_clk, cpu_write, rst_b,
     .addra(gfx1_read_addr[12:0]), // input  [12 : 0] addra
     .douta(gfx1_read_data)        // output [7 : 0]  douta
   );
+
   gfx2_1_BRAM gfx21ram (
     .clka(video_clk),                        // input  clka
     .addra(gfx2_bitplane_1_read_addr[13:0]), // input  [13 : 0] addra
     .douta(gfx2_bitplane_1_read_data)        // output [7 : 0]  douta
   );
+
   gfx2_2_BRAM gfx22ram (
     .clka(video_clk),                        // input  clka
     .addra(gfx2_bitplane_2_read_addr[13:0]), // input  [13 : 0] addra
     .douta(gfx2_bitplane_2_read_data)        // output [7 : 0]  douta
   );
+
   gfx2_3_BRAM gfx23ram (
     .clka(video_clk),                        // input  clka
     .addra(gfx2_bitplane_3_read_addr[13:0]), // input  [13 : 0] addra
     .douta(gfx2_bitplane_3_read_data)        // output [7 : 0]  douta
   );
+
   gfx3_1_BRAM gfx31ram (
     .clka(video_clk),               // input  clka
     .addra(gfx3_1_read_addr[14:0]), // input  [14 : 0] addra
     .douta(gfx3_1_read_data)        // output [7 : 0]  douta
   );
+
   gfx3_2_BRAM gfx32ram (
     .clka(video_clk),               // input  clka
     .addra(gfx3_2_read_addr[14:0]), // input  [14 : 0] addra
@@ -209,11 +195,10 @@ module memory_map (cpu_clk, /*audio_clk,*/ video_clk, cpu_write, rst_b,
   );
 
   palette_BRAM palettebram (
-  .clka(video_clk),                // input  clka
-  .addra(palette_read_addr[10:0]), // input  [10 : 0] addra
-  .douta(palette_read_data)        // output [15 : 0] douta
-);
-
+    .clka(video_clk),                // input  clka
+    .addra(palette_read_addr[10:0]), // input  [10 : 0] addra
+    .douta(palette_read_data)        // output [15 : 0] douta
+  );
 
   assign palette_bank_read_data = palette_bank;
 
@@ -299,8 +284,8 @@ module memory_map (cpu_clk, /*audio_clk,*/ video_clk, cpu_write, rst_b,
           cpu_data_out = data_maincpu_bank2_rom;
         2'b10: // Bank 3
           cpu_data_out = data_maincpu_bank3_rom;
-		  default:
-		    cpu_data_out = 'd0;
+      default:
+        cpu_data_out = 'd0;
       endcase
     // System port
     end else if (cpu_address == 16'hc000) begin
@@ -352,10 +337,7 @@ module memory_map (cpu_clk, /*audio_clk,*/ video_clk, cpu_write, rst_b,
       cpu_data_out  = data_maincpu_ram;
       cpu_write_ram = cpu_write;
     end
-    
   end
-
-
 endmodule
 
 
@@ -366,7 +348,6 @@ module video_controller_top
   input  wire [7:0] dip,
   output wire HS, VS,
   output wire [3:0] rgb_r, rgb_g, rgb_b,
-  output wire sound,
   
   // sound
   input  wire ac97_sdata_in,
@@ -377,30 +358,19 @@ module video_controller_top
   
   );  // RAM
 
-  //------------------ TEST SOUND OUTPUT --------------
-  assign sound = 0;
-
-
-  //------------------ END TEST SOUND OUTPUT --------------
-
-
-
-  wire        cpu_clk;//, audio_clk;
+  wire        cpu_clk;
   wire        video_clk;
-  wire        cpu_write;//, audio_write; // 1 to enable;
-  wire [15:0] cpu_address;     // to read/write
-//  wire [15:0] audio_address;
+  wire        cpu_write;   // 1 to enable;
+  wire [15:0] cpu_address; // to read/write
   wire [7:0]  cpu_data_in;
-//  wire [7:0]  audiocpu_data_in;
   wire [7:0]  cpu_data_out;
-//  wire [7:0]  audiocpu_data_out;
 
   wire [7:0]  fgvideoram_read_data;
   wire [7:0]  bgvideoram_read_data;
   wire [7:0]  spriteram_read_data;
   wire [1:0]  palette_bank_read_data;
 
-  wire [15:0]  scroll_read_data;
+  wire [15:0] scroll_read_data;
 
   wire [15:0] fgvideoram_read_addr;
   wire [15:0] bgvideoram_read_addr;
@@ -435,6 +405,7 @@ module video_controller_top
   reg test_clk;
   wire rst_b;
   reg clk_reset;
+
 /* For simulation 
   initial begin
     test_clk = 0;
@@ -443,16 +414,15 @@ module video_controller_top
     clk_reset = 1;
   end
   initial forever #5 test_clk = ~test_clk;
-
+*/
 /* For synthesis */
   always @(*) clk_reset = reset;
   always @(*) test_clk = input_clk; // Remove for simulation
 
-
-  //freq_divider_3M fd_sound(clk_100M, rst_b, audio_clk);
-
+  // Clock for VGA 50Mhz
   freq_divider_50M fd(clk_100M, rst_b, vga_clk);
 
+  // Clock for CPU 6.25Mhz
   clock z80_6_25(
     .CLKIN_IN(test_clk),
     .CLK0_OUT(clk_100M),
@@ -473,26 +443,6 @@ module video_controller_top
   wire j_up, j_down, j_right, j_left, j_p1_start, j_p2_start, j_coin, j_fire, j_special;
 
   // Joystick controller
-  /*joystick_controller jc(
-    .up(up), 
-	 .down(down), 
-	 .left(left), 
-	 .right(right),
-    .b1(fire), 
-	 .b2(special), 
-	 .b3(p1_start), 
-	 .b4(p2_start), 
-	 .b5(coin), 
-    .clk(cpu_clk), 
-	 .rst(rst_b),
-    .dir({j_up, j_down, j_right, j_left}),
-    .p1_start(j_p1_start),
-	 .p2_start(j_p2_start),
-    .coin(j_coin),
-    .fire(j_fire), 
-	 .special(j_special));
-  */
-  
   assign j_up       = up;
   assign j_down     = down;
   assign j_left     = left;
@@ -501,9 +451,9 @@ module video_controller_top
   assign j_p2_start = p2_start;
   assign j_coin     = coin;
   assign j_fire     = fire;
-  assign j_special  = special;//special;
-  // Sprite controller
+  assign j_special  = special;
 
+  // Sprite controller
   video_controller vc(
     .fgvideoram_read_data(fgvideoram_read_data),
     .bgvideoram_read_data(bgvideoram_read_data),
@@ -534,43 +484,37 @@ module video_controller_top
     .rgb_g(rgb_g),
     .video_clk(video_clk),
     .rst_b(rst_b),
-	 .dip(dip));
+    .dip(dip));
 
 
   soundMUX sound_mux(
     .ac97_sdata_in(ac97_sdata_in),
-	 .ac97_sdata_out(ac97_sdata_out),
-	 .ac97_sync(ac97_sync),
-	 .ac97_reset_b(ac97_reset_b),
-	 .ac97_bitclk(ac97_bitclk),
-	 .BROM_sel(soundlatch),
-	 .rst_b(rst_b)
+    .ac97_sdata_out(ac97_sdata_out),
+    .ac97_sync(ac97_sync),
+    .ac97_reset_b(ac97_reset_b),
+    .ac97_bitclk(ac97_bitclk),
+    .BROM_sel(soundlatch),
+    .rst_b(rst_b)
   );
 
   // Memory controller
-
   memory_map mm(
     .up(j_up),
     .down(j_down),
     .left(j_left),
     .right(j_right),
     .fire(j_fire),
-	 .special(j_special),
-	 .p1_start(j_p1_start),
-	 .p2_start(j_p2_start),
-	 .coin(j_coin),
+    .special(j_special),
+    .p1_start(j_p1_start),
+    .p2_start(j_p2_start),
+    .coin(j_coin),
     .dip(dip),
     .cpu_clk(cpu_clk),
-//    .audio_clk(audio_clk),
     .video_clk(video_clk),
     .cpu_write(cpu_write),
-//    .audio_write(audio_write),
     .cpu_address(cpu_address),
-//    .audio_address(audio_address),
     .cpu_data_in(cpu_data_in),
-//    .audio_data_in(audiocpu_data_in),
     .cpu_data_out(cpu_data_out),
-//    .audio_data_out(audiocpu_data_out),
     .fgvideoram_read_data(fgvideoram_read_data),
     .bgvideoram_read_data(bgvideoram_read_data),
     .spriteram_read_data(spriteram_read_data),
@@ -594,20 +538,17 @@ module video_controller_top
     .gfx3_2_read_addr(gfx3_2_read_addr),
     .palette_read_addr(palette_read_addr),
     .rst_b(rst_b),
-	 .soundlatch(soundlatch));
+   .soundlatch(soundlatch));
 
 
     //-------------- CPU -----------------
     reg  int_n;
     wire wait_n, nmi_n, busrq_n;
-    wire m1_n,  iorq_n;// mreq_n,  rfsh_n, halt_n;
-//    wire busak_n;//, bustw_n;
+    wire m1_n,  iorq_n;
 
     wire cpu_write_b; //0 to enable;
-//    wire cpu_read, cpu_read_b; //0 to enable;
 
     assign cpu_write = ~cpu_write_b;
-//    assign cpu_read  = ~cpu_read_b;
 
     /// FOR TESTING
     assign wait_n  = 1'b1;
@@ -618,25 +559,25 @@ module video_controller_top
 
     tv80s tv80(
       // Outputs
-        .m1_n(m1_n),
-//        .mreq_n(mreq_n),
-        .iorq_n(iorq_n),
-//        .rd_n(cpu_read_b),
-        .wr_n(cpu_write_b),
-//        .rfsh_n(rfsh_n),
-//        .halt_n(halt_n),
-//        .busak_n(busak_n),
-        .A(cpu_address),
-        .dout(cpu_data_in),
+      .m1_n(m1_n),
+//      .mreq_n(mreq_n),
+      .iorq_n(iorq_n),
+//      .rd_n(cpu_read_b),
+      .wr_n(cpu_write_b),
+//      .rfsh_n(rfsh_n),
+//      .halt_n(halt_n),
+//      .busak_n(busak_n),
+      .A(cpu_address),
+      .dout(cpu_data_in),
 
       // Inputs
-        .reset_n(rst_b),
-        .clk(~cpu_clk),
-        .wait_n(wait_n),
-        .int_n(int_n),
-        .nmi_n(nmi_n),
-        .busrq_n(busrq_n),
-        .di(cpu_data_out_with_interrupt)
+      .reset_n(rst_b),
+      .clk(~cpu_clk),
+      .wait_n(wait_n),
+      .int_n(int_n),
+      .nmi_n(nmi_n),
+      .busrq_n(busrq_n),
+      .di(cpu_data_out_with_interrupt)
     );
 
   /* SCANLINE INTERRUPT */
@@ -662,12 +603,12 @@ module video_controller_top
   always @(posedge cpu_clk or negedge rst_b) begin
     if (~rst_b) begin
       sound_sending_interrupt    <= 0;
-		scanline_sending_interrupt <= 0;
+      scanline_sending_interrupt <= 0;
     end else if (scanline_sync == 10'd479 && scanline_interrupt_received == 0) begin
       scanline_sending_interrupt <= 1;
-	 end else if (scanline_sync == 10'd240 && sound_interrupt_received == 0) begin
-	   sound_sending_interrupt    <= 1;
-	 end else if (scanline_sync == 10'd242 || (sound_sending_interrupt && m1_n == 0 && iorq_n == 0)) begin
+   end else if (scanline_sync == 10'd240 && sound_interrupt_received == 0) begin
+     sound_sending_interrupt    <= 1;
+   end else if (scanline_sync == 10'd242 || (sound_sending_interrupt && m1_n == 0 && iorq_n == 0)) begin
       sound_sending_interrupt    <= 0;
     end else if (scanline_sync == 10'd481 || (scanline_sending_interrupt && m1_n == 0 && iorq_n == 0)) begin
       scanline_sending_interrupt <= 0;
@@ -697,10 +638,10 @@ module video_controller_top
   // Should be latching
   always @(*) begin
     if (m1_n == 0 && iorq_n == 0) begin
-	   if (scanline_sending_interrupt)
+      if (scanline_sending_interrupt)
         cpu_data_out_with_interrupt = 8'hd7;
-		else if (sound_sending_interrupt)
-		  cpu_data_out_with_interrupt = 8'hcf;
+      else if (sound_sending_interrupt)
+        cpu_data_out_with_interrupt = 8'hcf;
     end else begin
       cpu_data_out_with_interrupt = cpu_data_out;
     end
