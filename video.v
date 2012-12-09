@@ -111,7 +111,7 @@ module video_controller(
   fg_linebuffer_pipeline fg_pipe(
     // inputs
     .scanline(effective_scanline),
-    .column(effective_column),
+    .column(effective_column[7:0]),
     .pipeline_start(pipeline_start),
     .fgvideoram_read_data(fgvideoram_read_data),
     .gfx1_read_data(gfx1_read_data),
@@ -1700,7 +1700,7 @@ endmodule
 module bg_scroller(
     // inputs
     input wire [7:0]  scanline,
-    input wire [8:0]  column,
+    input wire [9:0]  column,
     input wire [8:0]  bg_column,
     input wire [15:0] scroll_read_data,
     input wire        video_clk, 

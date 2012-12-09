@@ -18,7 +18,7 @@ module soundMUX
               sound_04_data, sound_05_data,
               sound_06_data, sound_07_data,
               sound_08_data, sound_09_data,
-              sound_0A_data;
+              sound_0A_data, sound_1B_data;
   wire [23:0] BROM_addr;
   reg  [15:0] sound_data;
   wire        finished;
@@ -61,6 +61,7 @@ module soundMUX
         8'h04, 8'h05: force_change_sound = 1'b0;
         8'h06:        force_change_sound = 1'b1;
         8'h07:        force_change_sound = 1'b1;
+		  8'h08:        force_change_sound = 1'b1;
         default:      force_change_sound = 1'b0;
       endcase
     end
@@ -110,12 +111,12 @@ module soundMUX
         
   assign sound_00_data = 0;
   assign sound_01_data = 0;
-  assign sound_03_data = 0;
+  assign sound_03_data = sound_04_data;
   assign sound_05_data = sound_04_data;
-  assign sound_08_data = 0;
-  assign sound_09_data = 0;
+  assign sound_08_data = sound_07_data;
+  assign sound_09_data = sound_04_data;
   assign sound_0A_data = sound_07_data;
-  
+  assign sound_1B_data = sound_07_data;
   
   always @(posedge ac97_bitclk or negedge rst_b) begin
     if (~rst_b) begin
@@ -133,6 +134,7 @@ module soundMUX
         8'h08:        sound_data <= sound_08_data;
         8'h09:        sound_data <= sound_09_data;
         8'h0A:        sound_data <= sound_0A_data;
+		  8'h1B:        sound_data <= sound_1B_data;
         default:      sound_data <= 'd0;
       endcase
     end
@@ -292,7 +294,7 @@ module AudioGen(
           end
         end
 
-        8'h04, 8'h05: 
+        8'h04, 8'h05, 8'h09: 
         begin
           if (count >= 'd9728) begin
             count    <= 'h0;
@@ -314,7 +316,7 @@ module AudioGen(
           end
         end
 
-        8'h07, 8'h0A: 
+        8'h07, 8'h08, 8'h0A, 8'h1B: 
         begin
           if(count >= 'd8192) begin
             count <= 'h0;

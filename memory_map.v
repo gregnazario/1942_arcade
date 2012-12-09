@@ -354,8 +354,9 @@ module video_controller_top
   output wire ac97_sdata_out,
   output wire ac97_sync,
   output wire ac97_reset_b,
-  input  wire ac97_bitclk
-  
+  input  wire ac97_bitclk,
+  output reg  play_sound,
+  output reg  [2:0] sound_code
   );  // RAM
 
   wire        cpu_clk;
@@ -405,6 +406,35 @@ module video_controller_top
   reg test_clk;
   wire rst_b;
   reg clk_reset;
+
+  always @(posedge clk_100M) begin
+    if (~rst_b) begin
+      play_sound <= 1'b0;
+		sound_code <= 'd0;
+	 end else begin
+	   case (soundlatch)
+		  8'h11: play_sound <= 1'b1;
+		  8'h0D: play_sound <= 1'b1;
+		  8'h0E: play_sound <= 1'b1;
+		  8'h12: play_sound <= 1'b1;
+		  8'h16: play_sound <= 1'b1;
+		  /*8'h00, 8'h0B, 8'h0F,*/ 8'h10 , 8'h1C, 8'h1D, 8'h1E: play_sound <= 1'b0;
+		  default: play_sound <= play_sound;
+		endcase
+		
+		case (soundlatch)
+		  8'h11: sound_code <= 3'd0; // Background sound
+		  8'h0D: sound_code <= 3'd1; // Takeoff
+		  8'h0E: sound_code <= 3'd2; // landing
+		  8'h12: sound_code <= 3'd3; // After death
+		  8'h16: sound_code <= 3'd4; // complete death
+		  /*8'h00, 8'h0B, 8'h0F, 8'h10, 8'h1C, 8'h1D, 8'h1E: sound_code <= 'd0;*/
+		  default: sound_code <= sound_code;
+		endcase
+	 end
+  end
+
+
 
 /* For simulation 
   initial begin

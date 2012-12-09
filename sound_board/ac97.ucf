@@ -1,0 +1,16 @@
+NET "ac97_bitclk" LOC="AF18" | TNM_NET = ac97_bitclk;
+NET "ac97_sdata_in" LOC="AE18";
+NET "ac97_sdata_out" LOC="AG16";
+NET "ac97_sync" LOC="AF19";
+NET "ac97_reset_b"    LOC="AG17";
+NET "play_music"      LOC="AN32" | DRIVE = 8;
+#NET "not_play_music"  LOC="AP32" | DRIVE = 8;
+NET "rst_b"           LOC="E9";
+NET "resetting"       LOC="AG12";
+NET "playing_music"   LOC="AF13";
+TIMESPEC TS_ac97_bitclk = PERIOD "ac97_bitclk" 12.288MHz HIGH 50%;
+
+
+NET "sound_code[0]"  LOC="AP32" | DRIVE = 8;
+NET "sound_code[1]"  LOC="AC33" | DRIVE = 8;
+NET "sound_code[2]"  LOC="AB33" | DRIVE = 8;
